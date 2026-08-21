@@ -297,14 +297,22 @@ def compare_routes_for_profile(profile_id: str, destination_id: str) -> List[Rou
         evaluated_route = evaluate_route(r_def, profile_id)
         evaluated.append(evaluated_route)
         
-    # To determine dynamic recommendations:
-    # If the user is a wheelchair user, and Route B is not rejected, Route B should be Recommended,
-    # and Route C should be Suitable with Caution (due to lower confidence / dim lighting).
-    # If Route B IS rejected (because the ramp is blocked), Route C becomes Recommended.
-    # Route A (stairs) is always Rejected for wheelchair users.
+    # Check if Route B is Rejected and Route C is active (navigable)
+    route_b = next((r for r in evaluated if r.route_id == "route_b"), None)
+    route_c = next((r for r in evaluated if r.route_id == "route_c"), None)
     
-    # We sort: Recommended first, then Suitable with Caution, then Rejected
-    status_order = {"Recommended": 0, "Suitable with Caution": 1, "Rejected": 2}
+    if route_b and route_b.status == "Rejected" and route_c and route_c.status != "Rejected":
+        # Promote Route C to Recommended Alternative because Route B is blocked
+        route_c.status = "Recommended Alternative"
+        route_c.reasons = ["Recommended Alternative: Best remaining navigable path bypasses the active barrier on Route B."] + route_c.reasons
+        
+    # We sort: Recommended / Recommended Alternative first, then Suitable with Caution, then Rejected
+    status_order = {
+        "Recommended": 0,
+        "Recommended Alternative": 0,
+        "Suitable with Caution": 1,
+        "Rejected": 2
+    }
     evaluated.sort(key=lambda r: status_order.get(r.status, 3))
     
     return evaluated

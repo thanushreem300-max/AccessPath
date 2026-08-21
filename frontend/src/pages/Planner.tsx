@@ -114,7 +114,7 @@ function Planner({ selectedProfile, selectedProfileName, onSelectProfile }: Plan
       setRoutes(routesData.routes);
 
       // Auto-select the Recommended route if none selected or the previously selected is now rejected
-      const recommended = routesData.routes.find((r: RouteInfo) => r.status === 'Recommended');
+      const recommended = routesData.routes.find((r: RouteInfo) => r.status === 'Recommended' || r.status === 'Recommended Alternative');
       const prevStillSuitable = routesData.routes.find((r: RouteInfo) => r.route_id === selectedRouteId && r.status !== 'Rejected');
       
       if (recommended && (!selectedRouteId || !prevStillSuitable)) {
@@ -354,7 +354,7 @@ function Planner({ selectedProfile, selectedProfileName, onSelectProfile }: Plan
       if (route.status === 'Rejected') {
         lineColor = '#EF4444'; // Red rejected
         lineWeight = 4;
-      } else if (route.status === 'Recommended') {
+      } else if (route.status === 'Recommended' || route.status === 'Recommended Alternative') {
         lineColor = '#0D9488'; // Teal recommended
         lineWeight = isSelected ? 8 : 5;
       } else if (route.status === 'Suitable with Caution') {
@@ -561,6 +561,12 @@ function Planner({ selectedProfile, selectedProfileName, onSelectProfile }: Plan
                   </button>
                 </div>
 
+                {routes.some(r => r.route_id === 'route_b' && r.status === 'Rejected') && activeRoute.route_id === 'route_c' && (
+                  <div style={{ backgroundColor: 'var(--color-warning-light)', color: 'var(--color-primary)', borderLeft: '4px solid var(--color-warning)', padding: '0.75rem', borderRadius: '0.25rem', marginBottom: '1rem', fontWeight: 600, fontSize: '0.9rem' }}>
+                    ⚠️ Rerouted safely: Route B is temporarily blocked. Route C is now recommended with caution.
+                  </div>
+                )}
+
                 {/* Progress Indicators */}
                 <div style={{ backgroundColor: 'rgba(255,255,255,0.1)', height: '4px', borderRadius: '2px', width: '100%', marginBottom: '1rem' }}>
                   <div 
@@ -663,6 +669,9 @@ function Planner({ selectedProfile, selectedProfileName, onSelectProfile }: Plan
                   } else if (route.status === 'Suitable with Caution') {
                     statusColor = 'status-caution';
                     statusBg = 'var(--color-warning-light)';
+                  } else if (route.status === 'Recommended Alternative') {
+                    statusColor = 'status-recommended';
+                    statusBg = 'var(--color-accent-light)';
                   }
 
                   return (

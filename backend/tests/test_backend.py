@@ -85,8 +85,8 @@ def test_barrier_triggered_rerouting():
     assert route_b["status"] == "Rejected"
     assert route_b["barriers_count"] == 1
     
-    # Route C should be promoted to Recommended (or sorted first since it's the only non-rejected route)
-    assert route_c["status"] == "Recommended" or data["routes"][0]["route_id"] == "route_c"
+    # Route C should be promoted to Recommended Alternative
+    assert route_c["status"] == "Recommended Alternative"
     assert data["routes"][0]["route_id"] == "route_c"
 
 def test_confidence_and_freshness_calculation():
